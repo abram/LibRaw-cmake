@@ -33,9 +33,7 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     message(STATUS "CMake version: ${CMAKE_VERSION}")
 endif ()
 
-if (NOT DEFINED LIBRAW_PATH)
-    set(LIBRAW_PATH ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Relative path to libraw directory (default=CMAKE_CURRENT_SOURCE_DIR)")
-endif()
+set(LIBRAW_PATH ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Relative path to libraw directory (default=CMAKE_CURRENT_SOURCE_DIR)")
 if(NOT EXISTS "${LIBRAW_PATH}")
     message(STATUS "LIBRAW_PATH=${LIBRAW_PATH}")
     message(FATAL_ERROR "LIBRAW_PATH does not contain a valid path to the libraw home")
@@ -91,6 +89,7 @@ option(ENABLE_RAWSPEED             "Build library with extra RawSpeed codec supp
 option(ENABLE_DCRAW_DEBUG          "Build library with debug message from dcraw     (default=OFF)"                OFF)
 option(ENABLE_X3FTOOLS             "Build library with Foveon X3F support           (default=OFF)"                OFF)
 option(ENABLE_6BY9RPI              "Build library with Raspberry Pi RAW support     (default=OFF)"                OFF)
+option(ENABLE_DNG_SDK              "Build library with extra Adobe DNG SDK support  (default=OFF)"                OFF)
 option(LIBRAW_UNINSTALL_TARGET     "Add a custom target to ease removal of installed targets"        ${MASTER_PROJECT})
 option(LIBRAW_INSTALL              "Generate the install target."                                    ${MASTER_PROJECT})
 
@@ -359,6 +358,10 @@ MACRO_BOOL_TO_01(ENABLE_X3FTOOLS LIBRAW_USE_X3FTOOLS)
 # Flag to add Raspberry Pi RAW support
 if(ENABLE_6BY9RPI)
     add_definitions(-DUSE_6BY9RPI)
+endif()
+
+if(ENABLE_DNG_SDK)
+    add_definitions(-DUSE_DNGSDK)
 endif()
 
 # For registration to libraw_config.h
