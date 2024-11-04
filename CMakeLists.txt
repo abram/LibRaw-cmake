@@ -122,10 +122,16 @@ include(MacroBoolTo01)
 include(MacroLogFeature)
 include(MacroOptionalFindPackage)
 
+set(LIBRAW_PC_LIBS_PRIVATE "")
+set(LIBRAW_PC_REQUIRES_PRIVATE "")
+
 # Math library check
 
 if(NOT WIN32 AND NOT EMSCRIPTEN)
     FIND_LIBRARY(MATH_LIBRARY m)
+    if(MATH_LIBRARY)
+        string(APPEND LIBRAW_PC_LIBS_PRIVATE " -l${MATH_LIBRARY}")
+    endif()
 endif()
 
 # LCMS version 1 and 2 library check
@@ -144,6 +150,7 @@ if(ENABLE_LCMS)
         # Flag to compile Little CMS version 2 with LibRaw
         add_definitions(-DUSE_LCMS2)
         set(LCMS_SUPPORT_CAN_BE_COMPILED true)
+        string(APPEND LIBRAW_PC_REQUIRES_PRIVATE " lcms2")
     else()
         message(STATUS "Check for LCMS availability instead LCMS2...")
         find_package(LCMS)
@@ -156,6 +163,7 @@ if(ENABLE_LCMS)
             # For compatibility
             set(LCMS2_LIBRARIES ${LCMS_LIBRARIES})
             set(LCMS_SUPPORT_CAN_BE_COMPILED true)
+            string(APPEND LIBRAW_PC_REQUIRES_PRIVATE " lcms")
         endif()
     endif()
 endif()
@@ -171,6 +179,7 @@ find_package(JPEG)
 # Flag to use zlib with LibRaw DNG deflate codec
 if(ZLIB_FOUND)
     add_definitions(-DUSE_ZLIB)
+    string(APPEND LIBRAW_PC_REQUIRES_PRIVATE " zlib")
 endif()
 
 # For registration to libraw_config.h
@@ -192,6 +201,7 @@ MACRO_LOG_FEATURE(JPEG8_FOUND "libjpeg" "JPEG image format support" "http://www.
 if(JPEG8_FOUND)
     add_definitions(-DUSE_JPEG)
     add_definitions(-DUSE_JPEG8)
+    string(APPEND LIBRAW_PC_REQUIRES_PRIVATE " libjpeg")
 endif()
 
 # For registration to libraw_config.h
@@ -211,7 +221,7 @@ MACRO_BOOL_TO_01(OPENMP_SUPPORT_CAN_BE_COMPILED LIBRAW_USE_OPENMP)
 
 # Jasper library check
 set(JASPER_SUPPORT_CAN_BE_COMPILED false)
-if(ENABLE_JASPER)
+if(RAW_LIB_VERSION_STRING VERSION_LESS 0.22 AND ENABLE_JASPER)
     find_package(Jasper)
 
     # Flag to use libjasper with LibRaw RedCine codec
@@ -219,6 +229,7 @@ if(ENABLE_JASPER)
         add_definitions(-DUSE_JASPER)
         include_directories(${JASPER_INCLUDE_DIR})
         set(JASPER_SUPPORT_CAN_BE_COMPILED true)
+        string(APPEND LIBRAW_PC_REQUIRES_PRIVATE " jasper")
     endif()
 endif()
 
@@ -589,16 +600,11 @@ set_target_properties(raw_r PROPERTIES COMPILE_PDB_NAME "raw_r")
 # -- Files to install -------------------------------------------------------------------------------------
 if (LIBRAW_INSTALL)
     # Configure and install data file for packaging.
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/data/libraw.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/libraw.pc @ONLY)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libraw.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
-    if(NOT MSVC)
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/data/libraw.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/libraw.pc @ONLY)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libraw.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/data/libraw_r.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/libraw_r.pc @ONLY)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libraw_r.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/data/libraw.lsm.cmake ${CMAKE_CURRENT_BINARY_DIR}/libraw.lsm)
-    endif()
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/data/libraw_r.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/libraw_r.pc @ONLY)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libraw_r.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
     # Install Shared header files.
     install(FILES       ${LIBRAW_PATH}/libraw/libraw.h
