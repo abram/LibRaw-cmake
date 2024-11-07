@@ -84,12 +84,13 @@ option(BUILD_SHARED_LIBS           "Build library as shared library             
 option(ENABLE_OPENMP               "Build library with OpenMP support               (default=ON)"                 ON)
 option(ENABLE_LCMS                 "Build library with LCMS support                 (default=ON)"                 ON)
 option(ENABLE_JASPER               "Build library with libjasper support            (default=ON)"                 ON)
+option(ENABLE_DNGSDK              "Build library with extra Adobe DNG SDK support  (default=ON)"                 ON)
 option(ENABLE_EXAMPLES             "Build library with sample command-line programs (default=ON)"    ${MASTER_PROJECT})
 option(ENABLE_RAWSPEED             "Build library with extra RawSpeed codec support (default=OFF)"                OFF)
 option(ENABLE_DCRAW_DEBUG          "Build library with debug message from dcraw     (default=OFF)"                OFF)
 option(ENABLE_X3FTOOLS             "Build library with Foveon X3F support           (default=OFF)"                OFF)
 option(ENABLE_6BY9RPI              "Build library with Raspberry Pi RAW support     (default=OFF)"                OFF)
-option(ENABLE_DNG_SDK              "Build library with extra Adobe DNG SDK support  (default=OFF)"                OFF)
+
 option(LIBRAW_UNINSTALL_TARGET     "Add a custom target to ease removal of installed targets"        ${MASTER_PROJECT})
 option(LIBRAW_INSTALL              "Generate the install target."                                    ${MASTER_PROJECT})
 
@@ -237,6 +238,16 @@ endif()
 # For registration to libraw_config.h
 MACRO_BOOL_TO_01(JASPER_SUPPORT_CAN_BE_COMPILED LIBRAW_USE_REDCINECODEC)
 
+# Adobe DNG SDK check
+set(DNGSDK_CAN_BE_COMPILED false)
+if(ENABLE_DNGSDK)
+    find_package(DNG)
+    if(DNG_FOUND)
+        set(DNGSDK_CAN_BE_COMPILED true)
+        add_definitions(-DUSE_DNGSDK)
+    endif()
+endif()
+
 # For RawSpeed Codec Support
 
 set(RAWSPEED_FOUND false)
@@ -360,10 +371,6 @@ if(ENABLE_6BY9RPI)
     add_definitions(-DUSE_6BY9RPI)
 endif()
 
-if(ENABLE_DNG_SDK)
-    add_definitions(-DUSE_DNGSDK)
-endif()
-
 # For registration to libraw_config.h
 MACRO_BOOL_TO_01(ENABLE_6BY9RPI LIBRAW_USE_6BY9RPI)
 
@@ -408,6 +415,12 @@ if(JASPER_SUPPORT_CAN_BE_COMPILED)
     message(STATUS " Libraw will be compiled with RedCine codec support ........... YES")
 else()
     message(STATUS " Libraw will be compiled with RedCine codec support ........... NO")
+endif()
+
+if (DNGSDK_CAN_BE_COMPILED)
+    message(STATUS " Libraw will be compiled with Adobe DNG SDK support ........... YES")
+else()
+    message(STATUS " Libraw will be compiled with Adobe DNG SDK support ........... NO")
 endif()
 
 if(ZLIB_FOUND)
@@ -524,6 +537,10 @@ endif()
 
 if(JASPER_SUPPORT_CAN_BE_COMPILED)
     target_link_libraries(raw PUBLIC ${JASPER_LIBRARIES})
+endif()
+
+if (DNGSDK_CAN_BE_COMPILED)
+    target_link_libraries(raw PUBLIC dng)
 endif()
 
 if(RAWSPEED_SUPPORT_CAN_BE_COMPILED)
