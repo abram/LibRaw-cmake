@@ -246,7 +246,6 @@ if(ENABLE_DNGSDK)
         add_definitions(-DUSE_DNGSDK)
         include_directories(${DNG_INCLUDE_DIR})
         set(DNGSDK_CAN_BE_COMPILED true)
-        string(APPEND LIBRAW_PC_REQUIRES_PRIVATE " dng")
     endif()
 endif()
 
