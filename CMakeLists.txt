@@ -243,8 +243,10 @@ set(DNGSDK_CAN_BE_COMPILED false)
 if(ENABLE_DNGSDK)
     find_package(DNG)
     if(DNG_FOUND)
-        set(DNGSDK_CAN_BE_COMPILED true)
         add_definitions(-DUSE_DNGSDK)
+        include_directories(${DNG_INCLUDE_DIR})
+        set(DNGSDK_CAN_BE_COMPILED true)
+        string(APPEND LIBRAW_PC_REQUIRES_PRIVATE " dng")
     endif()
 endif()
 
@@ -608,6 +610,10 @@ endif()
 
 if(JASPER_SUPPORT_CAN_BE_COMPILED)
     target_link_libraries(raw_r PUBLIC ${JASPER_LIBRARIES})
+endif()
+
+if (DNGSDK_CAN_BE_COMPILED)
+    target_link_libraries(raw_r PUBLIC dng)
 endif()
 
 if(RAWSPEED_SUPPORT_CAN_BE_COMPILED)
