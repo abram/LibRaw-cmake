@@ -243,6 +243,8 @@ set(DNGSDK_CAN_BE_COMPILED false)
 if(ENABLE_DNGSDK)
     find_package(DNG)
     if(DNG_FOUND)
+        # DNG SDK headers require C++ 11
+        set(CMAKE_CXX_STANDARD 11)
         add_definitions(-DUSE_DNGSDK)
         include_directories(${DNG_INCLUDE_DIR})
         set(DNGSDK_CAN_BE_COMPILED true)
